@@ -17,6 +17,7 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#view').style.display = 'none';
 
 
   // Clear out composition fields
@@ -30,6 +31,13 @@ function view_email(id){
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#view').innerHTML='';
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        read: true
+    })
+  })
   fetch(`/emails/${id}`)
         .then(response => response.json())
         .then(email => {
@@ -38,11 +46,31 @@ function view_email(id){
               To:${email.recipients} <br> 
               Subject:${email.subject} <br>
               Timestamp: ${email.timestamp} <br>
-              Reply <hr>
+               <hr>
               ${email.body}`
               document.querySelector('#view').append(show)
+              // Archive/Unarchive
+              const arch= document.createElement('button')
+              if (email.archived == true){
+                arch.innerHTML = "Unarchive"
+                arch.className = "unarc"
+              }else{
+                arch.innerHTML = "Archive"
+                arch.className = "arc"
+              }
+
+            arch.addEventListener('click', function(){
+              fetch(`/emails/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    archived: !email.archived
+                })
+              })
+              .then(()=> { load_mailbox('archive')})
             });
-  
+              document.querySelector('#view').append(arch);
+            });
+            
   }
 function load_mailbox(mailbox) {
   
@@ -58,11 +86,17 @@ function load_mailbox(mailbox) {
     .then(emails => {
           emails.forEach(singleEmail => {
             const NewEmail=document.createElement('div');
-            NewEmail.className="list-group-item"
+            
+            if(singleEmail.read == true){
+              NewEmail.className='read'
+            }else{
+              NewEmail.className='unread'
+            }
             NewEmail.innerHTML= ` 
-            <h6> To:${singleEmail.recipients} &emsp;&emsp;&emsp;&emsp; ${singleEmail.subject}</h6>
-            <p> Timestamp:${singleEmail.timestamp}</p>`;
-
+            <h6> Recipient:${singleEmail.recipients} <br>Sender:${singleEmail.sender}</h6>
+            <h5>Subject:${singleEmail.subject}</h5>
+            <p> Timestamp: ${singleEmail.timestamp}</p>`;
+            
             NewEmail.addEventListener('click', function(){
               view_email(singleEmail.id)
             });
