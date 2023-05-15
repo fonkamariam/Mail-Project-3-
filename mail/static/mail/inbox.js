@@ -26,17 +26,54 @@ function compose_email() {
   
   };
 
-
+function view_email(id){
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+  fetch(`/emails/${id}`)
+        .then(response => response.json())
+        .then(email => {
+           const show= document.createElement('div')
+              show.innerHTML=` <hr> From:${email.sender} <br> 
+              To:${email.recipients} <br> 
+              Subject:${email.subject} <br>
+              Timestamp: ${email.timestamp} <br>
+              Reply <hr>
+              ${email.body}`
+              document.querySelector('#view').append(show)
+            });
+  
+  }
 function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
-  
-}
+  fetch(`/emails/${mailbox}`) 
+    .then(response => response.json())
+    .then(emails => {
+          emails.forEach(singleEmail => {
+            const NewEmail=document.createElement('div');
+            NewEmail.className="list-group-item"
+            NewEmail.innerHTML= ` 
+            <h6> To:${singleEmail.recipients} &emsp;&emsp;&emsp;&emsp; ${singleEmail.subject}</h6>
+            <p> Timestamp:${singleEmail.timestamp}</p>`;
+
+            NewEmail.addEventListener('click', function(){
+              view_email(singleEmail.id)
+            });
+            document.querySelector('#emails-view').append(NewEmail);
+          });
+          
+    })
+   
+};
+
+
 function send_email(event){
   event.preventDefault();
   const recipients=document.querySelector('#compose-recipients').value;
