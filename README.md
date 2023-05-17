@@ -1,12 +1,12 @@
 # Mail-Project-3-
 # How to Install and Run
 Download the distribution code from Download the distribution code from https://cdn.cs50.net/web/2020/spring/projects/3/mail.zip and unzip it in your workspace.<br>
-In your terminal, cd into the mail directory.
-Run "python manage.py makemigrations mail" to make migrations for the mail app.
-Run "python manage.py migrate" to apply migrations to your database.
-Run "python manage.py runserver" which will provide a server address.
-Open the server address to run the application on your browser.
-CTRL-BREAK will allow you to Quit the server.
+In your terminal, cd into the mail directory.<br>
+Run "python manage.py makemigrations mail" to make migrations for the mail app.<br>
+Run "python manage.py migrate" to apply migrations to your database.<br>
+Run "python manage.py runserver" which will provide a server address.<br>
+Open the server address to run the application on your browser.<br>
+CTRL-BREAK will allow you to Quit the server.<br>
 # What the Website does
 This website allows users to communicate with each other by sending and recieving emails.
 
