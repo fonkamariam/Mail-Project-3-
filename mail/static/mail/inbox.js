@@ -27,7 +27,7 @@ function compose_email() {
   
   };
 
-function view_email(id){
+function view_email(id,h){
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -38,9 +38,39 @@ function view_email(id){
         read: true
     })
   })
+  
+      
   fetch(`/emails/${id}`)
         .then(response => response.json())
         .then(email => {
+          // Archive/Unarchive
+          fetch(`/req_user`) 
+          .then(response => response.json())
+          .then(user => {
+          x=user[0]
+          curr_user=x.fields.email
+          })
+      if(h != 'sent'){
+          const arch= document.createElement('button')
+          if (email.archived == true){
+            arch.innerHTML = "Unarchive"
+            arch.className = "unarc"
+          }else{
+            arch.innerHTML = "Archive"
+            arch.className = "arc"
+          }
+
+        arch.addEventListener('click', function(){
+          fetch(`/emails/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                archived: !email.archived
+            })
+          })
+          .then(()=> { load_mailbox('archive')})
+        });
+        document.querySelector('#view').append(arch);}
+      
            const show= document.createElement('div')
               show.innerHTML=` <hr> From:${email.sender} <br> 
               To:${email.recipients} <br> 
@@ -49,36 +79,53 @@ function view_email(id){
                <hr>
               ${email.body}`
               document.querySelector('#view').append(show)
-              // Archive/Unarchive
-              const arch= document.createElement('button')
-              if (email.archived == true){
-                arch.innerHTML = "Unarchive"
-                arch.className = "unarc"
-              }else{
-                arch.innerHTML = "Archive"
-                arch.className = "arc"
-              }
+              
+             // reply button
+              const reply= document.createElement('button')
+              reply.innerHTML='Reply'
+              reply.addEventListener('click', function(){
+                compose_email()
+                document.querySelector('#compose-recipients').value = email.sender;
+                let subject= email.subject
+                if (subject.split(" ",1)[0]!="Re:"){
+                  subject = "Re: " + email.subject;
+                }
+                document.querySelector('#compose-subject').value = subject;
+                let bodyy = email.body
+                const regexPattern = /^(On) [A-Za-z]+ [0-9]+ [0-9]+, [0-9]+:[0-9]+ [A-Z]+ [A-Za-z0-9]+@[A-Za-z0-9]+\.[A-Za-z]+ [A-Za-z]+ : ([\s\S]*) -->([\s\S]*)$/g;
+                const match= regexPattern.exec(bodyy)
+                c=email.sender
+                if (match){
+                  text=match[3]
+                if (curr_user== c){c="You"}
+                
+                  bodyy +=`On ${email.timestamp} ${c} Wrote : ${text} -->`;             
+                }else{
+                  bodyy = `On ${email.timestamp} ${c} Wrote : ${email.body} -->`;
+                }
 
-            arch.addEventListener('click', function(){
-              fetch(`/emails/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    archived: !email.archived
-                })
-              })
-              .then(()=> { load_mailbox('archive')})
-            });
-              document.querySelector('#view').append(arch);
+                
+                
+                document.querySelector('#compose-body').value= bodyy
+              
+                
+              });
+              document.querySelector('#view').append(reply)
+              
             });
             
   }
 function load_mailbox(mailbox) {
-  
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
-
+  console.log()
+// for not making appear the archive button appear only in the 'sent' mailbox.   
+let h='other'
+  if (mailbox=='sent'){
+    h='sent';
+  }
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
   fetch(`/emails/${mailbox}`) 
@@ -98,7 +145,7 @@ function load_mailbox(mailbox) {
             <p> Timestamp: ${singleEmail.timestamp}</p>`;
             
             NewEmail.addEventListener('click', function(){
-              view_email(singleEmail.id)
+              view_email(singleEmail.id,h)
             });
             document.querySelector('#emails-view').append(NewEmail);
           });

@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
 
 from .models import User, Email
 
@@ -126,6 +127,16 @@ def email(request, email_id):
             "error": "GET or PUT request required."
         }, status=400)
 
+@csrf_exempt
+@login_required
+def req_user(request):
+    if request.method == "GET":
+        userr=[request.user,request.user] 
+        serialized_data = serialize("json", userr)
+        serialized_data = json.loads(serialized_data)
+         
+
+        return JsonResponse(serialized_data,safe=False)
 
 def login_view(request):
     if request.method == "POST":
@@ -144,9 +155,7 @@ def login_view(request):
                 "message": "Invalid email and/or password."
             })
     else:
-        return render(request, "mail/login.html")
-
-
+        return render(request, "mail/login.html")    
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
