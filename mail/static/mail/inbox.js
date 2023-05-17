@@ -160,6 +160,24 @@ function send_email(event){
   const recipients=document.querySelector('#compose-recipients').value;
   const subject=document.querySelector('#compose-subject').value;
   const body =document.querySelector('#compose-body').value;
+  
+  if (recipients!='' && subject == '' && body == ''){
+  if (confirm("Send this message without a subject or text in the body?") == true) {
+    fetch('/emails',{
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: recipients,
+          subject: subject,
+          body: body
+      })
+    })
+          .then(response => response.json())
+          .then(result => { 
+            console.log(result)
+              load_mailbox('sent');
+  });
+  } 
+}else{
   fetch('/emails',{
     method: 'POST',
     body: JSON.stringify({
@@ -170,7 +188,8 @@ function send_email(event){
   })
         .then(response => response.json())
         .then(result => { 
-          console.log(result)
+          alert(result["error"])
             load_mailbox('sent');
 });
+}
 }
